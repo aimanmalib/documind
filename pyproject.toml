@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "documind"
 version = "1.0.0"
-description = "Document Q&A multi-agent pipeline powered by Xiaomi MiMo"
+description = "7-Agent Document Q&A pipeline for any OpenAI-compatible LLM (OpenAI, OpenRouter, Ollama, MiMo)"
 requires-python = ">=3.10"
 dependencies = [
     "click>=8.1",
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.1.0"]
 
 [project.scripts]
 documind = "documind.cli:main"

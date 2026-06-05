@@ -1,7 +1,7 @@
 """Tests for DocuMindConfig."""
+
 from __future__ import annotations
 
-import pytest
 
 from documind.config import DocuMindConfig
 

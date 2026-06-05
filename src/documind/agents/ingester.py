@@ -1,4 +1,5 @@
 """IngestAgent — Parse and chunk documents."""
+
 from __future__ import annotations
 
 import hashlib
@@ -86,6 +87,7 @@ class IngestAgent(BaseAgent):
         """Extract text from PDF. Tries pymupdf, falls back to raw read."""
         try:
             import fitz
+
             doc = fitz.open(str(path))
             pages = []
             for page in doc:
@@ -99,6 +101,7 @@ class IngestAgent(BaseAgent):
         """Extract text from DOCX. Tries python-docx, falls back."""
         try:
             from docx import Document as DocxDoc
+
             doc = DocxDoc(str(path))
             return "\n\n".join(p.text for p in doc.paragraphs if p.text.strip())
         except ImportError:
@@ -113,9 +116,7 @@ class IngestAgent(BaseAgent):
         h = hashlib.sha256(content[:4096].encode()).hexdigest()[:12]
         return f"doc-{h}"
 
-    def _split_into_chunks(
-        self, text: str, doc_id: str
-    ) -> list[TextChunk]:
+    def _split_into_chunks(self, text: str, doc_id: str) -> list[TextChunk]:
         """Split text into overlapping chunks."""
         chunks: list[TextChunk] = []
         sentences = re.split(r"(?<=[.!?])\s+", text)
@@ -126,14 +127,18 @@ class IngestAgent(BaseAgent):
         for sentence in sentences:
             if len(current) + len(sentence) + 1 > self.chunk_size and current:
                 cid = f"{doc_id}-chunk-{chunk_idx:04d}"
-                chunks.append(TextChunk(
-                    chunk_id=cid,
-                    document_id=doc_id,
-                    text=current.strip(),
-                    start_offset=offset,
-                    end_offset=offset + len(current),
-                ))
-                overlap_text = current[-self.chunk_overlap:] if self.chunk_overlap else ""
+                chunks.append(
+                    TextChunk(
+                        chunk_id=cid,
+                        document_id=doc_id,
+                        text=current.strip(),
+                        start_offset=offset,
+                        end_offset=offset + len(current),
+                    )
+                )
+                overlap_text = (
+                    current[-self.chunk_overlap :] if self.chunk_overlap else ""
+                )
                 offset += len(current) - len(overlap_text)
                 current = overlap_text + " " + sentence
                 chunk_idx += 1
@@ -142,13 +147,15 @@ class IngestAgent(BaseAgent):
 
         if current.strip():
             cid = f"{doc_id}-chunk-{chunk_idx:04d}"
-            chunks.append(TextChunk(
-                chunk_id=cid,
-                document_id=doc_id,
-                text=current.strip(),
-                start_offset=offset,
-                end_offset=offset + len(current),
-            ))
+            chunks.append(
+                TextChunk(
+                    chunk_id=cid,
+                    document_id=doc_id,
+                    text=current.strip(),
+                    start_offset=offset,
+                    end_offset=offset + len(current),
+                )
+            )
 
         return chunks
 

@@ -1,4 +1,5 @@
 """RetrieverAgent — Find relevant chunks for a query."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -24,7 +25,9 @@ class RetrieverAgent(BaseAgent):
 
     name = "retriever"
 
-    def __init__(self, *args: Any, index: IndexAgent | None = None, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, index: IndexAgent | None = None, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.index = index
 
@@ -47,12 +50,14 @@ class RetrieverAgent(BaseAgent):
                 continue
             entry = self.index.get_entry(chunk_id)
             if entry:
-                results.append(RetrievalResult(
-                    chunk_id=entry.chunk_id,
-                    document_id=entry.document_id,
-                    text=entry.text,
-                    score=round(score, 4),
-                ))
+                results.append(
+                    RetrievalResult(
+                        chunk_id=entry.chunk_id,
+                        document_id=entry.document_id,
+                        text=entry.text,
+                        score=round(score, 4),
+                    )
+                )
 
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:k]
@@ -70,7 +75,7 @@ class RetrieverAgent(BaseAgent):
         context = "\n\n".join(context_chunks)
 
         prompt = (
-            f"Given the question: \"{query}\"\n\n"
+            f'Given the question: "{query}"\n\n'
             f"Rank these text chunks by relevance (most relevant first). "
             f"Return ONLY the indices in order, comma-separated.\n\n{context}"
         )

@@ -1,9 +1,8 @@
 """Shared fixtures for DocuMind tests."""
+
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -36,6 +35,7 @@ def tracker():
 @pytest.fixture
 def mock_response():
     """Factory for mock completion responses."""
+
     def _make(
         content: str = "Test response",
         reasoning: str = "",
@@ -52,6 +52,7 @@ def mock_response():
             finish_reason="stop",
             latency_ms=250.0,
         )
+
     return _make
 
 
@@ -107,6 +108,7 @@ def sample_doc_path(sample_text, tmp_path):
 def sample_chunks():
     """Pre-built text chunks for testing."""
     from documind.agents.ingester import TextChunk
+
     return [
         TextChunk(
             chunk_id="doc-abc-chunk-0000",

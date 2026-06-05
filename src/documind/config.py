@@ -10,6 +10,7 @@ The historical ``mimo_*`` fields remain the canonical config attributes for
 backward compatibility; they simply hold whichever provider's key/url/model is
 active.
 """
+
 from __future__ import annotations
 
 import os
@@ -56,7 +57,9 @@ DEFAULT_PROVIDER = "mimo"
 class DocuMindConfig:
     """Environment-based configuration for DocuMind pipeline."""
 
-    provider: str = field(default_factory=lambda: os.getenv("DOCUMIND_PROVIDER", DEFAULT_PROVIDER))
+    provider: str = field(
+        default_factory=lambda: os.getenv("DOCUMIND_PROVIDER", DEFAULT_PROVIDER)
+    )
     mimo_api_key: str = field(default_factory=lambda: os.getenv("MIMO_API_KEY", ""))
     mimo_base_url: str = field(default_factory=lambda: os.getenv("MIMO_BASE_URL", ""))
     mimo_model: str = field(default_factory=lambda: os.getenv("MIMO_MODEL", ""))

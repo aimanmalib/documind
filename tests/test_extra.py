@@ -1,19 +1,15 @@
 """Additional tests to reach 90+ count."""
+
 from __future__ import annotations
 
 import pytest
 from pathlib import Path
 
-from documind.agents.ingester import IngestAgent, TextChunk, Document
+from documind.agents.ingester import IngestAgent
 from documind.agents.indexer import IndexAgent
-from documind.agents.retriever import RetrieverAgent, RetrievalResult
-from documind.agents.answerer import AnswerAgent, Answer
-from documind.agents.summarizer import SummarizerAgent
+from documind.agents.retriever import RetrieverAgent
+from documind.agents.answerer import Answer
 from documind.agents.citation import CitationAgent
-from documind.agents.export import ExportAgent
-from documind.client import MiMoClient, CompletionResponse
-from documind.config import DocuMindConfig
-from documind.token_tracker import TokenTracker
 
 
 class TestIngestAgentExtra:
@@ -51,7 +47,7 @@ class TestIndexAgentExtra:
     def test_compute_tf_normalizes(self, config, mock_client):
         agent = IndexAgent(client=mock_client, config=config)
         tf = agent._compute_tf(["hello", "hello", "world"])
-        assert abs(tf["hello"] - 2/3) < 0.01
+        assert abs(tf["hello"] - 2 / 3) < 0.01
 
     def test_extract_keywords_top_n(self, config, mock_client):
         agent = IndexAgent(client=mock_client, config=config)
@@ -97,5 +93,7 @@ class TestCitationExtra:
 
     def test_format_chicago_contains_author(self, config, mock_client, tracker):
         agent = CitationAgent(client=mock_client, config=config, tracker=tracker)
-        result = agent.format_citation("Title", "Smith", "2024", style="chicago", source_num=1)
+        result = agent.format_citation(
+            "Title", "Smith", "2024", style="chicago", source_num=1
+        )
         assert "Smith" in result.inline

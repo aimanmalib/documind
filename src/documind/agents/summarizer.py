@@ -1,4 +1,5 @@
 """SummarizerAgent — Generate document-level summaries."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -60,7 +61,11 @@ class SummarizerAgent(BaseAgent):
         key_points = []
         for line in text.split("\n"):
             stripped = line.strip()
-            if stripped.startswith("•") or stripped.startswith("- ") or stripped.startswith("* "):
+            if (
+                stripped.startswith("•")
+                or stripped.startswith("- ")
+                or stripped.startswith("* ")
+            ):
                 point = stripped.lstrip("•-* ").strip()
                 if point:
                     key_points.append(point)

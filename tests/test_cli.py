@@ -1,7 +1,7 @@
 """Tests for CLI."""
+
 from __future__ import annotations
 
-import pytest
 from click.testing import CliRunner
 
 from documind.cli import main

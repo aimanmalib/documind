@@ -1,4 +1,5 @@
 """Base agent abstract class for DocuMind pipeline."""
+
 from __future__ import annotations
 
 import time

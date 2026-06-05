@@ -4,12 +4,13 @@ Works with any provider that speaks the OpenAI ``/chat/completions`` protocol
 (OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo Token Plan, ...). The auth
 header style (bearer vs api-key) comes from the config's provider preset.
 """
+
 from __future__ import annotations
 
 import json
 import time
-from dataclasses import dataclass, field
-from typing import Any, AsyncIterator
+from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -136,7 +137,9 @@ class LLMClient:
                 usage = chunk.get("usage", {})
                 if usage:
                     prompt_tokens = usage.get("prompt_tokens", prompt_tokens)
-                    completion_tokens = usage.get("completion_tokens", completion_tokens)
+                    completion_tokens = usage.get(
+                        "completion_tokens", completion_tokens
+                    )
 
                 for choice in chunk.get("choices", []):
                     delta = choice.get("delta", {})

@@ -1,8 +1,8 @@
 """Tests for IngestAgent."""
+
 from __future__ import annotations
 
 import pytest
-from pathlib import Path
 
 from documind.agents.ingester import IngestAgent, TextChunk, Document
 
@@ -64,11 +64,19 @@ class TestTextChunk:
     """Test TextChunk dataclass."""
 
     def test_word_count_computed(self):
-        c = TextChunk(chunk_id="c1", document_id="d1", text="hello world test", start_offset=0, end_offset=16)
+        c = TextChunk(
+            chunk_id="c1",
+            document_id="d1",
+            text="hello world test",
+            start_offset=0,
+            end_offset=16,
+        )
         assert c.word_count == 3
 
     def test_char_count_computed(self):
-        c = TextChunk(chunk_id="c1", document_id="d1", text="hello", start_offset=0, end_offset=5)
+        c = TextChunk(
+            chunk_id="c1", document_id="d1", text="hello", start_offset=0, end_offset=5
+        )
         assert c.char_count == 5
 
 
@@ -80,5 +88,11 @@ class TestDocument:
             TextChunk("c1", "d1", "hello world", 0, 11),
             TextChunk("c2", "d1", "foo bar baz", 12, 23),
         ]
-        doc = Document(doc_id="d1", filename="test.txt", content="...", file_type="text", chunks=chunks)
+        doc = Document(
+            doc_id="d1",
+            filename="test.txt",
+            content="...",
+            file_type="text",
+            chunks=chunks,
+        )
         assert doc.total_words == 5

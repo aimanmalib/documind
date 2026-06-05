@@ -1,7 +1,7 @@
 """Pipeline orchestrator — coordinates all agents."""
+
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -14,7 +14,7 @@ from .export import ExportAgent
 from .fact_checker import FactCheckAgent, FactCheckResult
 from .indexer import IndexAgent
 from .ingester import Document, IngestAgent
-from .retriever import RetrieverAgent, RetrievalResult
+from .retriever import RetrieverAgent
 from .summarizer import SummarizerAgent, Summary
 from .token_tracker import TokenTracker
 
@@ -39,16 +39,33 @@ class DocuMindPipeline:
         self.client = MiMoClient(self.config)
         self.tracker = TokenTracker()
 
-        self.ingester = IngestAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.indexer = IndexAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.retriever = RetrieverAgent(
-            client=self.client, config=self.config, tracker=self.tracker, index=self.indexer
+        self.ingester = IngestAgent(
+            client=self.client, config=self.config, tracker=self.tracker
         )
-        self.answerer = AnswerAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.summarizer = SummarizerAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.fact_checker = FactCheckAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.citation_agent = CitationAgent(client=self.client, config=self.config, tracker=self.tracker)
-        self.exporter = ExportAgent(client=self.client, config=self.config, tracker=self.tracker)
+        self.indexer = IndexAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
+        self.retriever = RetrieverAgent(
+            client=self.client,
+            config=self.config,
+            tracker=self.tracker,
+            index=self.indexer,
+        )
+        self.answerer = AnswerAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
+        self.summarizer = SummarizerAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
+        self.fact_checker = FactCheckAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
+        self.citation_agent = CitationAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
+        self.exporter = ExportAgent(
+            client=self.client, config=self.config, tracker=self.tracker
+        )
 
     async def ingest(self, path: str | Path) -> Document:
         """Ingest and index a document."""
@@ -71,7 +88,9 @@ class DocuMindPipeline:
         fact_check = await self.fact_checker.run(answer=answer, source_chunks=chunks)
         return answer, fact_check
 
-    async def summarize_doc(self, document: Document, max_length: str = "medium") -> Summary:
+    async def summarize_doc(
+        self, document: Document, max_length: str = "medium"
+    ) -> Summary:
         """Summarize an ingested document."""
         return await self.summarizer.run(document=document, max_length=max_length)
 

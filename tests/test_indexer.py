@@ -1,10 +1,10 @@
 """Tests for IndexAgent."""
+
 from __future__ import annotations
 
 import pytest
 
 from documind.agents.indexer import IndexAgent, IndexEntry
-from documind.agents.ingester import TextChunk
 
 
 class TestIndexAgent:
@@ -17,14 +17,18 @@ class TestIndexAgent:
         assert count == 3
 
     @pytest.mark.asyncio
-    async def test_search_keywords_finds_match(self, config, mock_client, sample_chunks):
+    async def test_search_keywords_finds_match(
+        self, config, mock_client, sample_chunks
+    ):
         agent = IndexAgent(client=mock_client, config=config)
         await agent.index_chunks(sample_chunks)
         results = agent.search_keywords("document analysis")
         assert len(results) > 0
 
     @pytest.mark.asyncio
-    async def test_search_keywords_returns_tuples(self, config, mock_client, sample_chunks):
+    async def test_search_keywords_returns_tuples(
+        self, config, mock_client, sample_chunks
+    ):
         agent = IndexAgent(client=mock_client, config=config)
         await agent.index_chunks(sample_chunks)
         results = agent.search_keywords("pipeline agents")
@@ -81,5 +85,7 @@ class TestIndexAgent:
 
 class TestIndexEntry:
     def test_creation(self):
-        entry = IndexEntry(chunk_id="c1", document_id="d1", text="hello", keywords=["hello"])
+        entry = IndexEntry(
+            chunk_id="c1", document_id="d1", text="hello", keywords=["hello"]
+        )
         assert entry.chunk_id == "c1"
