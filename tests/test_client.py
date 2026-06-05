@@ -1,14 +1,12 @@
 """Tests for MiMo HTTP client."""
+
 from __future__ import annotations
 
-import json
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from documind.client import CompletionResponse, MiMoClient
-from documind.config import DocuMindConfig
 
 
 def _make_mock_response(data: dict):
@@ -16,9 +14,11 @@ def _make_mock_response(data: dict):
     resp = AsyncMock()
     resp.status_code = 200
     resp.raise_for_status = MagicMock()
+
     # json() must be a coroutine since client uses `await resp.json()`
     async def _json():
         return data
+
     resp.json = _json
     return resp
 
@@ -56,7 +56,15 @@ class TestMiMoClient:
         client = MiMoClient(config)
         mock_data = {
             "model": "mimo-v2.5-pro",
-            "choices": [{"message": {"content": "Hello!", "reasoning_content": "thinking..."}, "finish_reason": "stop"}],
+            "choices": [
+                {
+                    "message": {
+                        "content": "Hello!",
+                        "reasoning_content": "thinking...",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
             "usage": {"prompt_tokens": 50, "completion_tokens": 10, "total_tokens": 60},
         }
 
@@ -78,7 +86,11 @@ class TestMiMoClient:
         mock_data = {
             "model": "mimo-v2.5-pro",
             "choices": [{"message": {"content": "OK"}, "finish_reason": "stop"}],
-            "usage": {"prompt_tokens": 100, "completion_tokens": 200, "total_tokens": 300},
+            "usage": {
+                "prompt_tokens": 100,
+                "completion_tokens": 200,
+                "total_tokens": 300,
+            },
         }
         with patch.object(client, "_get_client") as mock_get:
             mock_http = AsyncMock()

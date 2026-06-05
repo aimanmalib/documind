@@ -1,4 +1,5 @@
 """Tests for AnswerAgent."""
+
 from __future__ import annotations
 
 import pytest
@@ -20,10 +21,13 @@ class TestAnswerAgent:
         assert isinstance(result, Answer)
 
     @pytest.mark.asyncio
-    async def test_answer_has_citations(self, config, mock_client, mock_response, tracker):
+    async def test_answer_has_citations(
+        self, config, mock_client, mock_response, tracker
+    ):
         mock_client.chat_completion.return_value = mock_response(
             content="MiMo is great [Source 1]. Very powerful.",
-            prompt_tokens=100, completion_tokens=50,
+            prompt_tokens=100,
+            completion_tokens=50,
         )
         agent = AnswerAgent(client=mock_client, config=config, tracker=tracker)
         chunks = [RetrievalResult("c1", "d1", "MiMo is great.", 0.9)]

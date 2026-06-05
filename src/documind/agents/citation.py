@@ -1,7 +1,7 @@
 """CitationAgent — Format citations in APA/MLA/Chicago styles."""
+
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -72,7 +72,7 @@ class CitationAgent(BaseAgent):
             return "No sources cited."
 
         source_list = "\n".join(
-            f"Source {c.get('source_num', i+1)}: chunk={c.get('chunk_id', '?')}, "
+            f"Source {c.get('source_num', i + 1)}: chunk={c.get('chunk_id', '?')}, "
             f"doc={c.get('document_id', '?')}, excerpt={c.get('excerpt', '')[:100]}"
             for i, c in enumerate(citations)
         )

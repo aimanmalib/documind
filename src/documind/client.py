@@ -1,13 +1,16 @@
-"""MiMo HTTP client for DocuMind.
+"""OpenAI-compatible HTTP client for DocuMind.
 
-CRITICAL: Uses 'api-key' header — NOT 'Authorization: Bearer'.
+Works with any provider that speaks the OpenAI ``/chat/completions`` protocol
+(OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo Token Plan, ...). The auth
+header style (bearer vs api-key) comes from the config's provider preset.
 """
+
 from __future__ import annotations
 
 import json
 import time
-from dataclasses import dataclass, field
-from typing import Any, AsyncIterator
+from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -16,7 +19,7 @@ from .config import DocuMindConfig
 
 @dataclass
 class CompletionResponse:
-    """Parsed response from MiMo chat completion."""
+    """Parsed response from a chat completion."""
 
     content: str = ""
     reasoning_content: str = ""
@@ -28,8 +31,8 @@ class CompletionResponse:
     latency_ms: float = 0.0
 
 
-class MiMoClient:
-    """Async HTTP client for Xiaomi MiMo V2.5 Pro API."""
+class LLMClient:
+    """Async HTTP client for any OpenAI-compatible chat completions endpoint."""
 
     def __init__(self, config: DocuMindConfig | None = None) -> None:
         self.config = config or DocuMindConfig.from_env()
@@ -43,11 +46,8 @@ class MiMoClient:
 
     @property
     def headers(self) -> dict[str, str]:
-        """Build request headers. Uses 'api-key' header, NOT Bearer."""
-        return {
-            "api-key": self.config.mimo_api_key,
-            "Content-Type": "application/json",
-        }
+        """Build request headers (bearer or api-key, per provider preset)."""
+        return self.config.headers
 
     async def _get_client(self) -> httpx.AsyncClient:
         if self._http is None or self._http.is_closed:
@@ -137,7 +137,9 @@ class MiMoClient:
                 usage = chunk.get("usage", {})
                 if usage:
                     prompt_tokens = usage.get("prompt_tokens", prompt_tokens)
-                    completion_tokens = usage.get("completion_tokens", completion_tokens)
+                    completion_tokens = usage.get(
+                        "completion_tokens", completion_tokens
+                    )
 
                 for choice in chunk.get("choices", []):
                     delta = choice.get("delta", {})
@@ -176,3 +178,7 @@ class MiMoClient:
             "request_count": self._request_count,
             "total_tokens": self._total_tokens,
         }
+
+
+# Backward-compatible alias. New code should use LLMClient.
+MiMoClient = LLMClient

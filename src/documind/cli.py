@@ -1,9 +1,9 @@
 """DocuMind CLI — command-line interface for document Q&A."""
+
 from __future__ import annotations
 
 import asyncio
 import sys
-from pathlib import Path
 
 import click
 from rich.console import Console
@@ -11,7 +11,6 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
 
-from documind.config import DocuMindConfig
 from documind.pipeline import DocuMindPipeline
 from documind.token_tracker import TokenTracker
 
@@ -20,7 +19,7 @@ console = Console()
 
 @click.group()
 def main() -> None:
-    """DocuMind — Document Q&A powered by Xiaomi MiMo V2.5 Pro."""
+    """DocuMind — 7-Agent Document Q&A for any OpenAI-compatible LLM."""
 
 
 @main.command()
@@ -41,7 +40,9 @@ def ingest(files: tuple[str, ...]) -> None:
             table.add_column("Chunks", justify="right")
             table.add_column("Words", justify="right")
             for r in results:
-                table.add_row(r.filename, r.file_type, str(len(r.chunks)), str(r.total_words))
+                table.add_row(
+                    r.filename, r.file_type, str(len(r.chunks)), str(r.total_words)
+                )
             console.print(table)
         finally:
             await pipeline.client.close()
@@ -72,7 +73,11 @@ def summarize(files: tuple[str, ...]) -> None:
             for f in files:
                 doc = await pipeline.ingest(f)
                 summary = await pipeline.summarize_document(doc)
-                console.print(Panel(Markdown(summary.summary_text), title=f"Summary: {doc.filename}"))
+                console.print(
+                    Panel(
+                        Markdown(summary.summary_text), title=f"Summary: {doc.filename}"
+                    )
+                )
         finally:
             await pipeline.client.close()
 

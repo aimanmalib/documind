@@ -1,4 +1,5 @@
 """FactCheckAgent — Verify answer claims against source documents."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,7 +14,9 @@ from .retriever import RetrievalResult
 class FactCheckResult:
     """Result of fact-checking an answer."""
 
-    overall_verdict: str  # "verified", "partially_verified", "unverified", "contradicted"
+    overall_verdict: (
+        str  # "verified", "partially_verified", "unverified", "contradicted"
+    )
     claims_checked: int
     claims_verified: int
     claims_contradicted: int
@@ -55,7 +58,11 @@ class FactCheckAgent(BaseAgent):
         response = await self._call_mimo(prompt)
         content = response.content
 
-        verified = content.lower().count("verified") - content.lower().count("unverified") - content.lower().count("contradicted")
+        verified = (
+            content.lower().count("verified")
+            - content.lower().count("unverified")
+            - content.lower().count("contradicted")
+        )
         contradicted = content.lower().count("contradicted")
         unverified = content.lower().count("unverified")
         claims = max(verified + contradicted + unverified, 1)

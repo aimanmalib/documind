@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a problem with DocuMind
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including the full error/traceback if any.
+      placeholder: When I run `documind ask ...`, it fails with ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands that trigger the bug.
+      placeholder: |
+        1. Set provider to ...
+        2. Run `documind ask doc.pdf -q "..."`
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Provider and model
+      placeholder: openai / gpt-4o-mini
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: DocuMind version
+      description: Output of `pip show documind` (Version field) or commit SHA.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.11"
+    validations:
+      required: true

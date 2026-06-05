@@ -1,4 +1,5 @@
 """Per-agent token usage tracking and reporting."""
+
 from __future__ import annotations
 
 import json
@@ -62,7 +63,13 @@ class TokenTracker:
     def by_agent(self) -> dict[str, dict[str, Any]]:
         """Aggregate usage by agent name."""
         agg: dict[str, dict[str, Any]] = defaultdict(
-            lambda: {"calls": 0, "prompt": 0, "completion": 0, "total": 0, "latency_ms": 0.0}
+            lambda: {
+                "calls": 0,
+                "prompt": 0,
+                "completion": 0,
+                "total": 0,
+                "latency_ms": 0.0,
+            }
         )
         for r in self._records:
             agg[r.agent_name]["calls"] += 1

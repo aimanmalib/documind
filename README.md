@@ -1,8 +1,15 @@
 # 🧠 DocuMind
 
-**Document Q&A Pipeline powered by Xiaomi MiMo V2.5 Pro**
+**7-Agent Document Q&A Pipeline for any OpenAI-compatible LLM**
 
 > Multi-agent document analysis system — ingest, index, retrieve, answer, verify, cite, export.
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/aimanmalib/documind/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/documind/actions/workflows/ci.yml)
+[![Tests: 110](https://img.shields.io/badge/tests-110-brightgreen.svg)](tests/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+Works with **OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo**, or any endpoint that speaks the OpenAI `/chat/completions` protocol. Pick a provider with one config line — no code changes.
 
 ---
 
@@ -31,7 +38,8 @@
 │  └──────────┘   └──────────┘   └───────────┘              │
 │                                                             │
 │  ═══════════════════════════════════════════════             │
-│  Xiaomi MiMo V2.5 Pro (token-plan-sgp.xiaomimimo.com)      │
+│  Any OpenAI-compatible /chat/completions endpoint          │
+│  (OpenAI · OpenRouter · Ollama · MiMo · ...)               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -50,23 +58,18 @@
 
 **Daily Total: ~2.4M tokens**
 
-## Token Consumption Report
+## Supported Providers
 
-| Metric | Value |
-|--------|-------|
-| Daily token consumption | ~2.4M tokens |
-| Per-session (avg 10 Q&A) | ~12K tokens |
-| Primary model | mimo-v2.5-pro |
-| API endpoint | `token-plan-sgp.xiaomimimo.com/v1` |
-| Auth method | `api-key` header |
+DocuMind talks to any OpenAI-compatible `/chat/completions` endpoint. Built-in presets:
 
-## Why MiMo?
+| Provider | `provider=` | Default model | Auth | Env vars |
+|----------|-------------|---------------|------|----------|
+| OpenAI | `openai` | `gpt-4o-mini` | Bearer | `OPENAI_API_KEY`, `OPENAI_BASE_URL` |
+| OpenRouter | `openrouter` | `openai/gpt-4o-mini` | Bearer | `OPENROUTER_API_KEY` |
+| Ollama (local) | `ollama` | `llama3.1` | Bearer | `OLLAMA_BASE_URL` |
+| Xiaomi MiMo | `mimo` | `mimo-v2.5-pro` | api-key | `MIMO_API_KEY` |
 
-1. **Cost efficiency** — MiMo V2.5 Pro delivers GPT-4-level reasoning at a fraction of the cost, critical for our high-volume document analysis pipeline
-2. **Structured output** — Excellent at generating consistently formatted citations, fact-check verdicts, and summaries
-3. **Reasoning depth** — The `reasoning_content` field provides transparent chain-of-thought, essential for the fact-checking agent
-4. **Speed** — Low latency enables interactive Q&A sessions without frustrating wait times
-5. **API compatibility** — OpenAI-compatible endpoint makes integration seamless
+Select a provider with the `DOCUMIND_PROVIDER` env var (or `DocuMindConfig(provider=...)`), or point `MIMO_BASE_URL` at any other compatible endpoint (llama.cpp, vLLM, LM Studio, a local proxy). The right auth header (bearer vs api-key) is chosen automatically per provider. The Fact Checker agent benefits from models that expose a `reasoning_content` field, but it isn't required.
 
 ## Quick Start
 
@@ -74,8 +77,9 @@
 # Install
 pip install -e ".[dev]"
 
-# Set API key
-export MIMO_API_KEY="your-key-here"
+# Pick any provider — set its API key (OpenAI shown here)
+export DOCUMIND_PROVIDER=openai
+export OPENAI_API_KEY="sk-your-key-here"
 
 # Ingest a document
 documind ingest document.pdf
@@ -90,13 +94,12 @@ documind ask document.pdf -q "Summarize the methods" --verify
 documind stats
 ```
 
-## API Details
+## LLM Backend
 
-- **Endpoint**: `https://token-plan-sgp.xiaomimimo.com/v1/chat/completions`
-- **Model**: `mimo-v2.5-pro`
-- **Auth**: `api-key` header (NOT `Authorization: Bearer`)
-- **Streaming**: SSE with `reasoning_content` field
-- **Rate Limits**: RPM 100, TPM 10M
+- **Protocol**: OpenAI-compatible `/chat/completions`
+- **Providers**: OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo, or any compatible endpoint
+- **Auth**: bearer token or `api-key` header, selected automatically per provider
+- **Config**: set `DOCUMIND_PROVIDER` + the provider's API key env var
 
 ## Tech Stack
 

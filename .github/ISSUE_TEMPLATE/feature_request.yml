@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest an idea or improvement for DocuMind
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do that DocuMind doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to happen.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - New LLM provider preset
+        - New document loader (HTML, EPUB, CSV, ...)
+        - New citation format
+        - New agent / agent improvement
+        - Documentation
+        - Other
+    validations:
+      required: true

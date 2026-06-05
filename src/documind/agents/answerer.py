@@ -1,4 +1,5 @@
 """AnswerAgent — Generate answers with citations from retrieved chunks."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -72,12 +73,14 @@ class AnswerAgent(BaseAgent):
         citations = []
         for i, chunk in enumerate(chunks):
             if f"[Source {i + 1}]" in content:
-                citations.append({
-                    "source_num": str(i + 1),
-                    "chunk_id": chunk.chunk_id,
-                    "document_id": chunk.document_id,
-                    "excerpt": chunk.text[:200],
-                })
+                citations.append(
+                    {
+                        "source_num": str(i + 1),
+                        "chunk_id": chunk.chunk_id,
+                        "document_id": chunk.document_id,
+                        "excerpt": chunk.text[:200],
+                    }
+                )
 
         confidence = "medium"
         lower = content.lower()

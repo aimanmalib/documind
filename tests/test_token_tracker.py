@@ -1,10 +1,9 @@
 """Tests for token tracker."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
 
 from documind.token_tracker import AgentUsage, TokenTracker
 
@@ -77,6 +76,7 @@ class TestTokenTracker:
 
     def test_session_duration_positive(self):
         import time
+
         t = TokenTracker()
         time.sleep(0.01)
         assert t.session_duration() > 0

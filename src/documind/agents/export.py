@@ -1,4 +1,5 @@
 """ExportAgent — Export Q&A sessions to various formats."""
+
 from __future__ import annotations
 
 import json
@@ -15,7 +16,9 @@ class ExportAgent(BaseAgent):
 
     name = "export"
 
-    def _format_markdown(self, answers: list[Answer], title: str = "DocuMind Q&A Session") -> str:
+    def _format_markdown(
+        self, answers: list[Answer], title: str = "DocuMind Q&A Session"
+    ) -> str:
         """Format answers as a Markdown document."""
         lines = [
             f"# {title}",

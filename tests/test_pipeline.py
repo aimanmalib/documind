@@ -1,10 +1,9 @@
 """Tests for DocuMindPipeline."""
+
 from __future__ import annotations
 
-import pytest
 
 from documind.pipeline import DocuMindPipeline, PipelineResult
-from documind.config import DocuMindConfig
 
 
 class TestDocuMindPipeline:
@@ -42,7 +41,13 @@ class TestPipelineResult:
         from documind.agents.ingester import Document, TextChunk
         from documind.agents.summarizer import Summary
 
-        doc = Document("d1", "t.txt", "content", "text", chunks=[TextChunk("c1", "d1", "content", 0, 7)])
+        doc = Document(
+            "d1",
+            "t.txt",
+            "content",
+            "text",
+            chunks=[TextChunk("c1", "d1", "content", 0, 7)],
+        )
         summary = Summary("d1", "t.txt", "summary", [], 1, 0.5)
         result = PipelineResult(document=doc, summary=summary)
         assert result.document.doc_id == "d1"
