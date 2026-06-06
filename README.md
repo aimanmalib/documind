@@ -67,6 +67,10 @@ DocuMind talks to any OpenAI-compatible `/chat/completions` endpoint. Built-in p
 | OpenAI | `openai` | `gpt-4o-mini` | Bearer | `OPENAI_API_KEY`, `OPENAI_BASE_URL` |
 | OpenRouter | `openrouter` | `openai/gpt-4o-mini` | Bearer | `OPENROUTER_API_KEY` |
 | Ollama (local) | `ollama` | `llama3.1` | Bearer | `OLLAMA_BASE_URL` |
+| Groq | `groq` | `llama-3.3-70b-versatile` | Bearer | `GROQ_API_KEY`, `GROQ_BASE_URL` |
+| DeepSeek | `deepseek` | `deepseek-chat` | Bearer | `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` |
+| Together | `together` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | Bearer | `TOGETHER_API_KEY`, `TOGETHER_BASE_URL` |
+| Mistral | `mistral` | `mistral-small-latest` | Bearer | `MISTRAL_API_KEY`, `MISTRAL_BASE_URL` |
 | Xiaomi MiMo | `mimo` | `mimo-v2.5-pro` | api-key | `MIMO_API_KEY` |
 
 Select a provider with the `DOCUMIND_PROVIDER` env var (or `DocuMindConfig(provider=...)`), or point `MIMO_BASE_URL` at any other compatible endpoint (llama.cpp, vLLM, LM Studio, a local proxy). The right auth header (bearer vs api-key) is chosen automatically per provider. The Fact Checker agent benefits from models that expose a `reasoning_content` field, but it isn't required.
