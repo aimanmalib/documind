@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
+from html.parser import HTMLParser
 from .base import BaseAgent
 
 
@@ -108,9 +108,39 @@ class IngestAgent(BaseAgent):
             return path.read_text(encoding="utf-8", errors="replace")
 
     def _read_html(self, path: Path) -> str:
-        """Strip HTML tags to plain text."""
+        """Extract text from HTML while preserving headings"""
+        class HeadingHTMLParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.text_parts=[]
+                self.ignore_tags={'script', 'style', 'head', 'meta', 'noscript'}
+                self.ignore_depth=0
+
+            def handle_starttag(self, tag, attrs):
+                if tag in self.ignore_tags:
+                    self.ignore_depth += 1
+                elif tag in {'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}:
+                    self.text_parts.append(f"\n\n{'#' * int(tag[1])} ")
+                elif tag in {'p', 'div', 'br', 'li', 'article', 'section'}:
+                    self.text_parts.append("\n")
+
+            def handle_endtag(self, tag):
+                if tag in self.ignore_tags:
+                    self.ignore_depth = max(0, self.ignore_depth-1)
+                elif tag in {'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'li', 'article', 'section'}:
+                    self.text_parts.append("\n\n")
+            
+            def handle_data(self, data):
+                if self.ignore_depth == 0:
+                    self.text_parts.append(re.sub(r'[ \t\r\f\v]+', ' ', data))
+    
         raw = path.read_text(encoding="utf-8", errors="replace")
-        return re.sub(r"<[^>]+>", " ", raw)
+        parser = HeadingHTMLParser()
+        parser.feed(raw)
+        text = "".join(parser.text_parts)
+        return re.sub(r'\n{3,}', '\n\n', text).strip()    
+    
+
 
     def _generate_doc_id(self, content: str, filename: str) -> str:
         h = hashlib.sha256(content[:4096].encode()).hexdigest()[:12]
@@ -201,7 +231,7 @@ class IngestAgent(BaseAgent):
             metadata={"source_path": str(p.resolve()), "size_bytes": p.stat().st_size},
         )
 
-        if extract_sections and file_type in ("markdown", "rst"):
+        if extract_sections and file_type in ("markdown", "rst", "html"):
             sections = self._extract_sections(content)
             all_chunks: list[TextChunk] = []
             for section_name, section_text in sections:
