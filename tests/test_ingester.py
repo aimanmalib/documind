@@ -59,6 +59,37 @@ class TestIngestAgent:
         docs = await agent.run_batch([tmp_path / f"doc{i}.txt" for i in range(3)])
         assert len(docs) == 3
 
+    @pytest.mark.asyncio
+    async def test_ingest_html(self, config, mock_client, tmp_path):
+        p = tmp_path / "test.html"
+        html_content = """
+        <html>
+        <head><title>Ignore it </title><style>body{color:red;}</style></head>
+        <body>
+              <h1>Main Title</h1>
+              <p>Paragraph</p>
+              <h2>Sub Title</h2>
+              <div> some div content. <script> console.log("ignore)</script></div>
+        </body>
+        </html>
+        """
+        p.write_text(html_content)
+        agent = IngestAgent(client=mock_client, config=config)
+        doc = await agent.run(path=p, extract_sections=True)
+        assert doc.file_type == "html"
+        assert "# Main Title" in doc.content
+        assert "## Sub Title" in doc.content
+        assert "Paragraph" in doc.content
+        assert "Ignore it" not in doc.content
+        assert "body{color:red;}" not in doc.content
+        assert "console.log" not in doc.content
+
+        sections = {c.section for c in doc.chunks}
+        assert "Main Title" in sections
+        assert "Sub Title" in sections
+
+
+
 
 class TestTextChunk:
     """Test TextChunk dataclass."""
