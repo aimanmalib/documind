@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .base import BaseAgent
 from .answerer import Answer
+from .base import BaseAgent
 from .retriever import RetrievalResult
 
 
