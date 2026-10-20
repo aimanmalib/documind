@@ -1,7 +1,7 @@
 # Contributing to DocuMind
 
 Thanks for your interest in improving DocuMind. This project is a
-provider-agnostic, 7-agent document Q&A pipeline that runs on any
+provider-agnostic, multi-agent document Q&A pipeline that runs on any
 OpenAI-compatible LLM endpoint. Contributions of all sizes are welcome — docs
 fixes, new provider presets, agent improvements, and bug reports all help.
 
@@ -12,7 +12,7 @@ git clone https://github.com/aimanmalib/documind.git
 cd documind
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest          # 110 tests should pass
+pytest          # all tests should pass
 ```
 
 ## Development workflow
@@ -28,7 +28,7 @@ pytest          # 110 tests should pass
 4. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
    (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `ci:`).
 5. Open a pull request against `main`. CI runs lint + format + tests on
-   Python 3.10/3.11/3.12 — keep it green.
+   Python 3.10–3.13 — keep it green.
 
 ## Adding a new LLM provider
 
@@ -52,8 +52,9 @@ the OpenAI protocol.
 
 ## Good first issues
 
-- Add a provider preset (Together, Groq, DeepSeek, Mistral, ...)
-- Add a document loader (HTML, EPUB, CSV)
+- Add a provider preset for another OpenAI-compatible service
+- Add a document loader (EPUB, PPTX, ...)
+- Optional embedding-based retrieval alongside TF-IDF
 - Add a citation format (IEEE, Harvard)
 - Improve an agent's prompt
 
