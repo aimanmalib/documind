@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from documind.agents.summarizer import SummarizerAgent, Summary
 from documind.agents.ingester import Document, TextChunk
+from documind.agents.summarizer import SummarizerAgent, Summary
 
 
 class TestSummarizerAgent:

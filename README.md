@@ -1,118 +1,124 @@
-# 🧠 DocuMind
+# DocuMind
 
-**7-Agent Document Q&A Pipeline for any OpenAI-compatible LLM**
+**Multi-agent document Q&A for any OpenAI-compatible LLM**
 
-> Multi-agent document analysis system — ingest, index, retrieve, answer, verify, cite, export.
+> Ingest, index, retrieve, answer, verify, cite, export: a small pipeline of focused agents that answers questions about your documents with source citations.
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/aimanmalib/documind/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/documind/actions/workflows/ci.yml)
-[![Tests: 110](https://img.shields.io/badge/tests-110-brightgreen.svg)](tests/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Works with **OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo**, or any endpoint that speaks the OpenAI `/chat/completions` protocol. Pick a provider with one config line — no code changes.
+Works with **OpenAI, OpenRouter, Ollama, Groq, DeepSeek, Together, Mistral, Xiaomi MiMo**, or any server that speaks the OpenAI `/chat/completions` protocol (llama.cpp, vLLM, LM Studio, a local gateway). Pick a provider with environment variables, no code changes.
 
 ---
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DocuMind Pipeline                         │
-│                                                             │
-│  ┌──────────┐   ┌──────────┐   ┌───────────┐               │
-│  │ Ingester │──▶│ Indexer  │──▶│ Retriever │               │
-│  │ Agent    │   │ Agent    │   │ Agent     │               │
-│  └──────────┘   └──────────┘   └─────┬─────┘               │
-│       │                              │                      │
-│       ▼                              ▼                      │
-│  ┌──────────┐   ┌──────────┐   ┌───────────┐              │
-│  │Summarizer│   │FactCheck │   │ Answerer  │              │
-│  │ Agent    │   │ Agent    │   │ Agent     │              │
-│  └──────────┘   └──────────┘   └─────┬─────┘              │
-│                                      │                      │
-│       ┌──────────────────────────────┼──────────┐          │
-│       ▼                              ▼          ▼          │
-│  ┌──────────┐   ┌──────────┐   ┌───────────┐              │
-│  │ Citation │   │  Export  │   │  Token    │              │
-│  │ Agent    │   │  Agent   │   │  Tracker  │              │
-│  └──────────┘   └──────────┘   └───────────┘              │
-│                                                             │
-│  ═══════════════════════════════════════════════             │
-│  Any OpenAI-compatible /chat/completions endpoint          │
-│  (OpenAI · OpenRouter · Ollama · MiMo · ...)               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Agents
-
-| Agent | Role | Est. Tokens/Day |
-|-------|------|-----------------|
-| **Ingester** | Parse PDF/DOCX/TXT/MD, chunk text | 0.15M |
-| **Indexer** | Build keyword + TF-IDF index | 0.20M |
-| **Retriever** | Find relevant chunks + MiMo reranking | 0.45M |
-| **Answerer** | Generate cited answers from context | 0.80M |
-| **Summarizer** | Document-level summaries | 0.35M |
-| **Fact Checker** | Verify claims against sources | 0.25M |
-| **Citation** | APA/MLA/Chicago formatting | 0.10M |
-| **Export** | Markdown/JSON export | 0.05M |
-
-**Daily Total: ~2.4M tokens**
-
-## Supported Providers
-
-DocuMind talks to any OpenAI-compatible `/chat/completions` endpoint. Built-in presets:
-
-| Provider | `provider=` | Default model | Auth | Env vars |
-|----------|-------------|---------------|------|----------|
-| OpenAI | `openai` | `gpt-4o-mini` | Bearer | `OPENAI_API_KEY`, `OPENAI_BASE_URL` |
-| OpenRouter | `openrouter` | `openai/gpt-4o-mini` | Bearer | `OPENROUTER_API_KEY` |
-| Ollama (local) | `ollama` | `llama3.1` | Bearer | `OLLAMA_BASE_URL` |
-| Groq | `groq` | `llama-3.3-70b-versatile` | Bearer | `GROQ_API_KEY`, `GROQ_BASE_URL` |
-| DeepSeek | `deepseek` | `deepseek-chat` | Bearer | `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` |
-| Together | `together` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | Bearer | `TOGETHER_API_KEY`, `TOGETHER_BASE_URL` |
-| Mistral | `mistral` | `mistral-small-latest` | Bearer | `MISTRAL_API_KEY`, `MISTRAL_BASE_URL` |
-| Xiaomi MiMo | `mimo` | `mimo-v2.5-pro` | api-key | `MIMO_API_KEY` |
-
-Select a provider with the `DOCUMIND_PROVIDER` env var (or `DocuMindConfig(provider=...)`), or point `MIMO_BASE_URL` at any other compatible endpoint (llama.cpp, vLLM, LM Studio, a local proxy). The right auth header (bearer vs api-key) is chosen automatically per provider. The Fact Checker agent benefits from models that expose a `reasoning_content` field, but it isn't required.
 
 ## Quick Start
 
 ```bash
-# Install
-pip install -e ".[dev]"
+git clone https://github.com/aimanmalib/documind.git
+cd documind
+pip install -e .            # add ".[pdf,docx]" for PDF / Word extraction
 
-# Pick any provider — set its API key (OpenAI shown here)
-export DOCUMIND_PROVIDER=openai
-export OPENAI_API_KEY="sk-your-key-here"
+export OPENAI_API_KEY="sk-..."   # OpenAI is the default provider
 
-# Ingest a document
-documind ingest document.pdf
+# Check how a document is chunked (no LLM calls)
+documind ingest report.md
 
-# Ask questions
-documind ask document.pdf -q "What is the main conclusion?" -q "Who are the authors?"
+# Ask questions; answers cite [Source N] chunks
+documind ask report.md -q "What is the main conclusion?" -q "Who are the authors?"
 
-# With verification
-documind ask document.pdf -q "Summarize the methods" --verify
+# Fact-check each answer against the sources and save the session
+documind ask report.md -q "Summarize the methods" --verify --export qa.md
 
-# View token stats
-documind stats
+# Summarize one or more documents
+documind summarize report.md
 ```
 
-## LLM Backend
+`documind --help` and `documind <command> --help` list every option. `ask` and `summarize` end with a table of the token usage reported by the LLM for that run.
 
-- **Protocol**: OpenAI-compatible `/chat/completions`
-- **Providers**: OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo, or any compatible endpoint
-- **Auth**: bearer token or `api-key` header, selected automatically per provider
-- **Config**: set `DOCUMIND_PROVIDER` + the provider's API key env var
+## Choosing a provider
 
-## Tech Stack
+| Provider | `DOCUMIND_PROVIDER` | Default model | API key env var | Base URL env var |
+|----------|---------------------|---------------|-----------------|------------------|
+| OpenAI (default) | `openai` | `gpt-4o-mini` | `OPENAI_API_KEY` | `OPENAI_BASE_URL` |
+| OpenRouter | `openrouter` | `openai/gpt-4o-mini` | `OPENROUTER_API_KEY` | `OPENROUTER_BASE_URL` |
+| Ollama (local) | `ollama` | `llama3.1` | not required | `OLLAMA_BASE_URL` |
+| Groq | `groq` | `llama-3.3-70b-versatile` | `GROQ_API_KEY` | `GROQ_BASE_URL` |
+| DeepSeek | `deepseek` | `deepseek-chat` | `DEEPSEEK_API_KEY` | `DEEPSEEK_BASE_URL` |
+| Together | `together` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | `TOGETHER_API_KEY` | `TOGETHER_BASE_URL` |
+| Mistral | `mistral` | `mistral-small-latest` | `MISTRAL_API_KEY` | `MISTRAL_BASE_URL` |
+| Xiaomi MiMo | `mimo` | `mimo-v2.5-pro` | `MIMO_API_KEY` | `MIMO_BASE_URL` |
 
-- Python 3.10+
-- Click + Rich (CLI)
-- httpx (async HTTP)
-- Pydantic (data validation)
-- pytest + pytest-asyncio (testing)
+All presets use `Authorization: Bearer` except MiMo, which uses an `api-key` header; the right one is picked automatically.
+
+```bash
+# OpenRouter
+export DOCUMIND_PROVIDER=openrouter
+export OPENROUTER_API_KEY="sk-or-..."
+
+# Any other OpenAI-compatible endpoint (overrides the preset)
+export DOCUMIND_BASE_URL="http://localhost:8000/v1"
+export DOCUMIND_API_KEY="anything-non-empty"
+export DOCUMIND_MODEL="my-model"
+```
+
+`DOCUMIND_MODEL` also works on its own to pick a different model from a preset provider.
+
+Other settings: `DOCUMIND_CHUNK_SIZE` (512), `DOCUMIND_CHUNK_OVERLAP` (64), `DOCUMIND_RETRIEVAL_K` (5), `DOCUMIND_CITATION_FORMAT` (`apa` | `mla` | `chicago`), `DOCUMIND_OUTPUT_DIR` (`./output`).
+
+## How it works
+
+```
+ document ─▶ Ingester ─▶ Indexer ─▶ Retriever ─▶ Answerer ─▶ Fact Checker ─▶ Export
+             parse +     keyword +   top-k chunks  cited       (--verify)      Markdown /
+             chunk       TF-IDF      (+ LLM rerank)  answer                     JSON
+                                                         Summarizer · Citation
+```
+
+| Agent | Role | Uses the LLM |
+|-------|------|:---:|
+| **Ingester** | Read TXT / MD / RST / HTML / JSON / CSV (PDF and DOCX with the optional extras) and split into overlapping chunks | no |
+| **Indexer** | Build a keyword + TF-IDF index over the chunks | no |
+| **Retriever** | Return the top-k chunks for a question, optionally reranked by the LLM (`--rerank`) | optional |
+| **Answerer** | Answer strictly from the retrieved chunks with `[Source N]` citations | yes |
+| **Fact Checker** | Rate each claim in an answer as verified / unverified / contradicted (`--verify`) | yes |
+| **Summarizer** | Document-level summary and key points | yes |
+| **Citation** | Format references in APA / MLA / Chicago | yes |
+| **Export** | Write the Q&A session to Markdown or JSON | no |
+
+Retrieval is lexical (TF-IDF), not embedding-based, so no embedding model or vector database is needed. That keeps the tool small and provider-agnostic, but it works best when questions share vocabulary with the document.
+
+## Use as a library
+
+```python
+import asyncio
+from documind.pipeline import DocuMindPipeline
+
+async def main():
+    pipeline = DocuMindPipeline()          # reads the same env vars as the CLI
+    await pipeline.ingest_documents(["report.md"])
+    answer = await pipeline.ask("What is the main conclusion?")
+    print(answer.answer_text)
+    print(pipeline.tracker.by_agent())     # token usage per agent
+    await pipeline.client.close()
+
+asyncio.run(main())
+```
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+ruff check src tests && ruff format --check src tests
+pytest
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)
+
+---
+
+Built by [Sasa Teguh](https://sasateguh.com) · Malaysia

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from documind.agents.fact_checker import FactCheckAgent, FactCheckResult
 from documind.agents.answerer import Answer
+from documind.agents.fact_checker import FactCheckAgent, FactCheckResult
 from documind.agents.retriever import RetrievalResult
 
 

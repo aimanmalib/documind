@@ -6,18 +6,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from documind.agents import (
-    IngestAgent,
-    IndexAgent,
-    RetrieverAgent,
     AnswerAgent,
-    SummarizerAgent,
-    FactCheckAgent,
     CitationAgent,
     ExportAgent,
+    FactCheckAgent,
+    IndexAgent,
+    IngestAgent,
+    RetrieverAgent,
+    SummarizerAgent,
 )
-from documind.agents.ingester import TextChunk, Document
 from documind.agents.answerer import Answer
-from documind.client import MiMoClient
+from documind.agents.ingester import Document, TextChunk
+from documind.client import LLMClient
 from documind.token_tracker import TokenTracker
 
 
@@ -39,7 +39,7 @@ class DocuMindPipeline:
         from documind.config import DocuMindConfig
 
         self.config = config or DocuMindConfig.from_env()
-        self.client = MiMoClient(self.config)
+        self.client = LLMClient(self.config)
         self.tracker = TokenTracker()
 
         self.ingester = IngestAgent(
@@ -144,7 +144,9 @@ class DocuMindPipeline:
 
         export_path = ""
         if answers:
-            export_path = await self.export_session(f"/tmp/documind-{doc.doc_id}.md")
+            export_path = await self.export_session(
+                f"{self.config.output_dir}/documind-{doc.doc_id}.md"
+            )
 
         await self.client.close()
         return PipelineResult(

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from documind.agents.indexer import IndexAgent
-from documind.agents.retriever import RetrieverAgent, RetrievalResult
+from documind.agents.retriever import RetrievalResult, RetrieverAgent
 
 
 class TestRetrieverAgent:

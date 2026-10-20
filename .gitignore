@@ -12,3 +12,6 @@ venv/
 .pytest_cache/
 .mypy_cache/
 output/
+
+# uv
+uv.lock

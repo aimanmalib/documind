@@ -1,30 +1,24 @@
-"""Tests for MiMo HTTP client."""
+"""Tests for the OpenAI-compatible HTTP client."""
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import json
+from unittest.mock import AsyncMock, patch
 
+import httpx
 import pytest
 
 from documind.client import CompletionResponse, MiMoClient
 
 
-def _make_mock_response(data: dict):
-    """Create a mock httpx response with async json()."""
-    resp = AsyncMock()
-    resp.status_code = 200
-    resp.raise_for_status = MagicMock()
-
-    # json() must be a coroutine since client uses `await resp.json()`
-    async def _json():
-        return data
-
-    resp.json = _json
-    return resp
+def _make_mock_response(data: dict) -> httpx.Response:
+    """Build a real httpx response (its json() is synchronous)."""
+    request = httpx.Request("POST", "https://test.api.example.com/v1/chat/completions")
+    return httpx.Response(200, json=data, request=request)
 
 
 class TestMiMoClient:
-    """Test the MiMo HTTP client."""
+    """Test the HTTP client."""
 
     def test_init_with_config(self, config):
         client = MiMoClient(config)
@@ -35,12 +29,11 @@ class TestMiMoClient:
         client = MiMoClient(config)
         assert client.base_url == "https://example.com/v1"
 
-    def test_headers_use_api_key_not_bearer(self, config):
+    def test_headers_use_bearer_by_default(self, config):
         client = MiMoClient(config)
         headers = client.headers
-        assert "api-key" in headers
-        assert headers["api-key"] == "test-key-123"
-        assert "Authorization" not in headers
+        assert headers["Authorization"] == "Bearer test-key-123"
+        assert "api-key" not in headers
 
     def test_headers_content_type(self, config):
         client = MiMoClient(config)
@@ -126,3 +119,60 @@ class TestCompletionResponse:
         r = CompletionResponse(content="test", total_tokens=100)
         assert r.content == "test"
         assert r.total_tokens == 100
+
+
+class TestRealHttpTransport:
+    """Exercise the client through a real httpx stack (MockTransport)."""
+
+    @pytest.mark.asyncio
+    async def test_non_streaming_request_and_parse(self, config):
+        seen: dict = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen["url"] = str(request.url)
+            seen["auth"] = request.headers.get("authorization")
+            seen["body"] = json.loads(request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "model": "m",
+                    "choices": [
+                        {"message": {"content": "Paris"}, "finish_reason": "stop"}
+                    ],
+                    "usage": {
+                        "prompt_tokens": 7,
+                        "completion_tokens": 1,
+                        "total_tokens": 8,
+                    },
+                },
+            )
+
+        client = MiMoClient(config)
+        client._http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        try:
+            result = await client.chat_completion([{"role": "user", "content": "?"}])
+        finally:
+            await client.close()
+
+        assert result.content == "Paris"
+        assert result.total_tokens == 8
+        assert seen["url"] == "https://test.api.example.com/v1/chat/completions"
+        assert seen["auth"] == "Bearer test-key-123"
+        assert seen["body"]["stream"] is False
+        assert seen["body"]["model"] == config.model
+
+    @pytest.mark.asyncio
+    async def test_null_content_becomes_empty_string(self, config):
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={"choices": [{"message": {"content": None}}], "usage": {}},
+            )
+
+        client = MiMoClient(config)
+        client._http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        try:
+            result = await client.chat_completion([{"role": "user", "content": "?"}])
+        finally:
+            await client.close()
+        assert result.content == ""

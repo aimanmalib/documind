@@ -67,7 +67,7 @@ class CitationAgent(BaseAgent):
         citations: list[dict[str, str]],
         style: str | None = None,
     ) -> str:
-        """Generate a formatted reference list using MiMo."""
+        """Generate a formatted reference list using the LLM."""
         if not citations:
             return "No sources cited."
 

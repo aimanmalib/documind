@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from documind.agents.ingester import IngestAgent, TextChunk, Document
+from documind.agents.ingester import Document, IngestAgent, TextChunk
 
 
 class TestIngestAgent:

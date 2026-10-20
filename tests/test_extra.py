@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 
-from documind.agents.ingester import IngestAgent
-from documind.agents.indexer import IndexAgent
-from documind.agents.retriever import RetrieverAgent
+import pytest
+
 from documind.agents.answerer import Answer
 from documind.agents.citation import CitationAgent
+from documind.agents.indexer import IndexAgent
+from documind.agents.ingester import IngestAgent
+from documind.agents.retriever import RetrieverAgent
 
 
 class TestIngestAgentExtra:

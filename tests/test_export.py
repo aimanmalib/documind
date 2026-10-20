@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from documind.agents.export import ExportAgent
 from documind.agents.answerer import Answer
+from documind.agents.export import ExportAgent
 
 
 class TestExportAgent:

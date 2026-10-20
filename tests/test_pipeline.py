@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from documind.pipeline import DocuMindPipeline, PipelineResult
 
 
@@ -25,7 +24,7 @@ class TestDocuMindPipeline:
         assert pipeline.config.mimo_api_key == "test-key-123"
 
     def test_init_default_config(self, monkeypatch):
-        monkeypatch.setenv("MIMO_API_KEY", "env-key")
+        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
         pipeline = DocuMindPipeline()
         assert pipeline.config.mimo_api_key == "env-key"
 

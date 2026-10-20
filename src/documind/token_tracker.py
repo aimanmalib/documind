@@ -25,19 +25,6 @@ class AgentUsage:
 class TokenTracker:
     """Track and report token usage across all agents."""
 
-    # Estimated daily token consumption per agent (millions)
-    DAILY_ESTIMATES: dict[str, float] = {
-        "ingester": 0.15,
-        "indexer": 0.20,
-        "retriever": 0.45,
-        "answerer": 0.80,
-        "summarizer": 0.35,
-        "fact_checker": 0.25,
-        "citation": 0.10,
-        "export": 0.05,
-        "pipeline": 0.05,
-    }
-
     def __init__(self) -> None:
         self._records: list[AgentUsage] = []
         self._session_start: float = time.time()
@@ -111,8 +98,6 @@ class TokenTracker:
             "total_calls": self.total_calls(),
             "total_tokens": self.total_tokens(),
             "by_agent": self.by_agent(),
-            "daily_estimates_millions": self.DAILY_ESTIMATES,
-            "daily_total_estimated_millions": sum(self.DAILY_ESTIMATES.values()),
             "projection": self.daily_projection(),
         }
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from documind.agents.answerer import AnswerAgent, Answer
+from documind.agents.answerer import Answer, AnswerAgent
 from documind.agents.retriever import RetrievalResult
 
 
