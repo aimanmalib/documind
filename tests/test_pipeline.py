@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from documind.pipeline import DocuMindPipeline, PipelineResult
 
 

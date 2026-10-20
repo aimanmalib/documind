@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 
-
 from documind.token_tracker import AgentUsage, TokenTracker
 
 
@@ -43,12 +42,6 @@ class TestTokenTracker:
         assert by_agent["answerer"]["total"] == 450
         assert by_agent["ingester"]["calls"] == 1
 
-    def test_daily_estimates_populated(self):
-        t = TokenTracker()
-        assert "answerer" in t.DAILY_ESTIMATES
-        assert "ingester" in t.DAILY_ESTIMATES
-        assert sum(t.DAILY_ESTIMATES.values()) > 0
-
     def test_summary_structure(self):
         t = TokenTracker()
         t.record("test", 100, 50, 100.0)
@@ -56,7 +49,7 @@ class TestTokenTracker:
         assert "total_calls" in summary
         assert "total_tokens" in summary
         assert "by_agent" in summary
-        assert "daily_estimates_millions" in summary
+        assert "projection" in summary
 
     def test_export_json(self, tmp_path):
         t = TokenTracker()

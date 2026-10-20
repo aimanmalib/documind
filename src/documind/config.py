@@ -125,7 +125,9 @@ class DocuMindConfig:
             self.mimo_base_url = os.getenv(preset["env_base"], preset["base_url"])
         if not self.mimo_model:
             env_model = preset.get("env_model", "")
-            self.mimo_model = (env_model and os.getenv(env_model, "")) or preset["model"]
+            self.mimo_model = (env_model and os.getenv(env_model, "")) or preset[
+                "model"
+            ]
         if not self.auth_style:
             self.auth_style = preset["auth_style"]
 
@@ -179,7 +181,7 @@ class DocuMindConfig:
         return errors
 
     @classmethod
-    def from_env(cls) -> "DocuMindConfig":
+    def from_env(cls) -> DocuMindConfig:
         """Create config from environment variables."""
         cfg = cls()
         errors = cfg.validate()
@@ -187,5 +189,5 @@ class DocuMindConfig:
             import warnings
 
             for e in errors:
-                warnings.warn(f"Config warning: {e}")
+                warnings.warn(f"Config warning: {e}", stacklevel=2)
         return cfg

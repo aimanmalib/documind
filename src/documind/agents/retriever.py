@@ -34,7 +34,7 @@ class RetrieverAgent(BaseAgent):
     async def retrieve(
         self, query: str, *, top_k: int | None = None, min_score: float = 0.0
     ) -> list[RetrievalResult]:
-        """Retrieve relevant chunks using keyword index + MiMo reranking."""
+        """Retrieve relevant chunks using keyword index (optionally reranked by the LLM)."""
         if not self.index:
             raise ValueError("IndexAgent not set. Pass index= to constructor.")
 
@@ -65,7 +65,7 @@ class RetrieverAgent(BaseAgent):
     async def rerank_with_mimo(
         self, query: str, candidates: list[RetrievalResult], top_k: int = 3
     ) -> list[RetrievalResult]:
-        """Use MiMo to rerank candidates by semantic relevance."""
+        """Use the LLM to rerank candidates by semantic relevance."""
         if not candidates:
             return []
 

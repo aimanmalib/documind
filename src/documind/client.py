@@ -1,7 +1,7 @@
 """OpenAI-compatible HTTP client for DocuMind.
 
 Works with any provider that speaks the OpenAI ``/chat/completions`` protocol
-(OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo Token Plan, ...). The auth
+(OpenAI, OpenRouter, Ollama, llama.cpp, Xiaomi MiMo, ...). The auth
 header style (bearer vs api-key) comes from the config's provider preset.
 """
 
@@ -63,7 +63,7 @@ class LLMClient:
         max_tokens: int = 2048,
         stream: bool = False,
     ) -> CompletionResponse:
-        """Send a chat completion request to MiMo API."""
+        """Send a chat completion request to the configured endpoint."""
         client = await self._get_client()
         payload: dict[str, Any] = {
             "model": model or self.config.mimo_model,
@@ -83,7 +83,7 @@ class LLMClient:
             json=payload,
         )
         resp.raise_for_status()
-        data = await resp.json()
+        data = resp.json()
         elapsed = (time.monotonic() - start) * 1000
 
         self._request_count += 1
@@ -94,8 +94,8 @@ class LLMClient:
         choice = data.get("choices", [{}])[0]
         msg = choice.get("message", {})
         return CompletionResponse(
-            content=msg.get("content", ""),
-            reasoning_content=msg.get("reasoning_content", ""),
+            content=msg.get("content") or "",
+            reasoning_content=msg.get("reasoning_content") or "",
             model=data.get("model", ""),
             prompt_tokens=usage.get("prompt_tokens", 0),
             completion_tokens=usage.get("completion_tokens", 0),

@@ -6,7 +6,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..client import CompletionResponse, MiMoClient
+from ..client import CompletionResponse, LLMClient
 from ..config import DocuMindConfig
 from ..token_tracker import TokenTracker
 
@@ -18,12 +18,12 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
-        client: MiMoClient | None = None,
+        client: LLMClient | None = None,
         config: DocuMindConfig | None = None,
         tracker: TokenTracker | None = None,
     ) -> None:
         self.config = config or DocuMindConfig.from_env()
-        self.client = client or MiMoClient(self.config)
+        self.client = client or LLMClient(self.config)
         self.tracker = tracker or TokenTracker()
 
     def _build_system_prompt(self) -> str:
@@ -36,7 +36,7 @@ class BaseAgent(ABC):
     async def _call_mimo(
         self, user_prompt: str, *, system_prompt: str | None = None, **kwargs: Any
     ) -> CompletionResponse:
-        """Make a MiMo API call and track token usage."""
+        """Make an LLM call and track token usage."""
         messages: list[dict[str, str]] = []
         sys_prompt = system_prompt or self._build_system_prompt()
         messages.append({"role": "system", "content": sys_prompt})
