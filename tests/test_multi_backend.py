@@ -21,8 +21,8 @@ class TestProviderPresets:
         ):
             assert provider in PROVIDER_PRESETS
 
-    def test_default_provider_is_mimo(self):
-        assert DEFAULT_PROVIDER == "mimo"
+    def test_default_provider_is_openai(self):
+        assert DEFAULT_PROVIDER == "openai"
 
 
 class TestPresetResolution:
@@ -65,7 +65,7 @@ class TestPresetResolution:
 
     def test_unknown_provider_falls_back_to_default(self):
         c = DocuMindConfig(provider="nope", mimo_api_key="x")
-        assert "xiaomimimo.com" in c.base_url
+        assert c.base_url == "https://api.openai.com/v1"
 
     def test_explicit_values_override_preset(self):
         c = DocuMindConfig(
@@ -110,14 +110,36 @@ class TestEnvResolution:
         assert c.mimo_api_key == "or-env"
 
 
+class TestGenericOverrides:
+    def test_documind_env_overrides_any_provider(self, monkeypatch):
+        monkeypatch.setenv("DOCUMIND_API_KEY", "generic-key")
+        monkeypatch.setenv("DOCUMIND_BASE_URL", "http://localhost:8000/v1")
+        monkeypatch.setenv("DOCUMIND_MODEL", "my-model")
+        c = DocuMindConfig()
+        assert c.provider == "openai"
+        assert c.api_key == "generic-key"
+        assert c.base_url == "http://localhost:8000/v1"
+        assert c.model == "my-model"
+        assert c.headers["Authorization"] == "Bearer generic-key"
+
+    def test_preset_env_base_url(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_BASE_URL", "https://gateway.example/v1")
+        c = DocuMindConfig(mimo_api_key="k")
+        assert c.base_url == "https://gateway.example/v1"
+
+
 class TestMiMoBackwardCompat:
     def test_mimo_defaults(self, monkeypatch):
-        monkeypatch.delenv("MIMO_API_KEY", raising=False)
-        c = DocuMindConfig(mimo_api_key="test")
+        c = DocuMindConfig(provider="mimo", mimo_api_key="test")
         assert c.provider == "mimo"
         assert c.mimo_model == "mimo-v2.5-pro"
         assert "xiaomimimo.com" in c.base_url
         assert c.headers["api-key"] == "test"
+
+    def test_mimo_model_env(self, monkeypatch):
+        monkeypatch.setenv("MIMO_MODEL", "mimo-other")
+        c = DocuMindConfig(provider="mimo", mimo_api_key="k")
+        assert c.model == "mimo-other"
 
     def test_generic_aliases(self):
         c = DocuMindConfig(provider="openai", mimo_api_key="sk-x")

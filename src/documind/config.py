@@ -2,13 +2,15 @@
 
 DocuMind speaks the OpenAI-compatible ``/chat/completions`` protocol, so it
 works with any provider exposing that API: OpenAI, OpenRouter, Ollama, local
-llama.cpp servers, Xiaomi MiMo Token Plan, and more. Select a provider via
-``provider=`` (or the ``DOCUMIND_PROVIDER`` env var) or point ``mimo_base_url``
-at any compatible endpoint.
+llama.cpp / vLLM servers, Groq, DeepSeek, Mistral, Xiaomi MiMo, and more.
+Select a provider via ``provider=`` (or the ``DOCUMIND_PROVIDER`` env var,
+default ``openai``). ``DOCUMIND_API_KEY``, ``DOCUMIND_BASE_URL`` and
+``DOCUMIND_MODEL`` override the preset for any provider, which is how you point
+DocuMind at a custom OpenAI-compatible endpoint.
 
 The historical ``mimo_*`` fields remain the canonical config attributes for
 backward compatibility; they simply hold whichever provider's key/url/model is
-active.
+active. Prefer the ``api_key`` / ``base_url`` / ``model`` properties.
 """
 
 from __future__ import annotations
@@ -26,6 +28,7 @@ PROVIDER_PRESETS: dict[str, dict[str, str]] = {
         "model": "mimo-v2.5-pro",
         "env_key": "MIMO_API_KEY",
         "env_base": "MIMO_BASE_URL",
+        "env_model": "MIMO_MODEL",
     },
     "openai": {
         "base_url": "https://api.openai.com/v1",
@@ -78,7 +81,10 @@ PROVIDER_PRESETS: dict[str, dict[str, str]] = {
     },
 }
 
-DEFAULT_PROVIDER = "mimo"
+DEFAULT_PROVIDER = "openai"
+
+# Providers that run locally and don't need an API key.
+KEYLESS_PROVIDERS = frozenset({"ollama"})
 
 
 @dataclass
@@ -88,9 +94,12 @@ class DocuMindConfig:
     provider: str = field(
         default_factory=lambda: os.getenv("DOCUMIND_PROVIDER", DEFAULT_PROVIDER)
     )
-    mimo_api_key: str = field(default_factory=lambda: os.getenv("MIMO_API_KEY", ""))
-    mimo_base_url: str = field(default_factory=lambda: os.getenv("MIMO_BASE_URL", ""))
-    mimo_model: str = field(default_factory=lambda: os.getenv("MIMO_MODEL", ""))
+    # Generic overrides; blank means "use the provider preset / its env vars".
+    mimo_api_key: str = field(default_factory=lambda: os.getenv("DOCUMIND_API_KEY", ""))
+    mimo_base_url: str = field(
+        default_factory=lambda: os.getenv("DOCUMIND_BASE_URL", "")
+    )
+    mimo_model: str = field(default_factory=lambda: os.getenv("DOCUMIND_MODEL", ""))
     auth_style: str = ""  # "bearer" | "api-key" — resolved from provider if blank
     max_chunk_size: int = field(
         default_factory=lambda: int(os.getenv("DOCUMIND_CHUNK_SIZE", "512"))
@@ -115,7 +124,8 @@ class DocuMindConfig:
         if not self.mimo_base_url:
             self.mimo_base_url = os.getenv(preset["env_base"], preset["base_url"])
         if not self.mimo_model:
-            self.mimo_model = preset["model"]
+            env_model = preset.get("env_model", "")
+            self.mimo_model = (env_model and os.getenv(env_model, "")) or preset["model"]
         if not self.auth_style:
             self.auth_style = preset["auth_style"]
 
@@ -145,8 +155,19 @@ class DocuMindConfig:
     def validate(self) -> list[str]:
         """Return list of configuration errors."""
         errors = []
-        if not self.mimo_api_key:
-            errors.append("MIMO_API_KEY is not set")
+        if self.provider not in PROVIDER_PRESETS:
+            errors.append(
+                f"Unknown provider {self.provider!r}; using {DEFAULT_PROVIDER!r}. "
+                f"Known: {', '.join(sorted(PROVIDER_PRESETS))}"
+            )
+        if not self.mimo_api_key and self.provider not in KEYLESS_PROVIDERS:
+            preset = PROVIDER_PRESETS.get(
+                self.provider, PROVIDER_PRESETS[DEFAULT_PROVIDER]
+            )
+            errors.append(
+                f"No API key: set {preset['env_key']} or DOCUMIND_API_KEY "
+                f"(provider={self.provider})"
+            )
         if self.max_chunk_size < 64:
             errors.append("max_chunk_size must be >= 64")
         if self.chunk_overlap >= self.max_chunk_size:

@@ -35,12 +35,11 @@ class TestMiMoClient:
         client = MiMoClient(config)
         assert client.base_url == "https://example.com/v1"
 
-    def test_headers_use_api_key_not_bearer(self, config):
+    def test_headers_use_bearer_by_default(self, config):
         client = MiMoClient(config)
         headers = client.headers
-        assert "api-key" in headers
-        assert headers["api-key"] == "test-key-123"
-        assert "Authorization" not in headers
+        assert headers["Authorization"] == "Bearer test-key-123"
+        assert "api-key" not in headers
 
     def test_headers_content_type(self, config):
         client = MiMoClient(config)

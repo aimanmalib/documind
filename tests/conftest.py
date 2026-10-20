@@ -11,6 +11,19 @@ from documind.config import DocuMindConfig
 from documind.token_tracker import TokenTracker
 
 
+@pytest.fixture(autouse=True)
+def _isolate_provider_env(monkeypatch):
+    """Keep tests hermetic: ignore provider settings from the developer's shell."""
+    from documind.config import PROVIDER_PRESETS
+
+    names = {"DOCUMIND_PROVIDER", "DOCUMIND_API_KEY", "DOCUMIND_BASE_URL"}
+    names |= {"DOCUMIND_MODEL", "MIMO_MODEL"}
+    for preset in PROVIDER_PRESETS.values():
+        names |= {preset["env_key"], preset["env_base"]}
+    for name in names:
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def config():
     """Test configuration with mock API key."""
